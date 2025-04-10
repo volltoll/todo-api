@@ -1,6 +1,3 @@
-# todo-api
-
-
 # 10.04.2025 - TODO-SERVER(API) - BACKEND (MIT EXPRESS, MONGOOSE & MONGODB) Teil 1
 
 - In diesem Einführungsprojekt werden wir eine einfache TODO-API erstellen die
@@ -14,7 +11,7 @@
 
 - Ein Projekt zu plannen ist sehr wichtig, um den Überblick zu behalten.
 - Hier ist ein einfacher Plan für unser Projekt:
-- Wir werden eine TODO-Liste erstellen, die folgende Funktionen hat:
+- Wir werden ein TODO-API erstellen, die folgende Funktionen hat:
   - Alle Aufgaben anzeigen
   - Eine neue Aufgabe erstellen
   - Eine Aufgabe aktualisieren
@@ -42,13 +39,13 @@ projekt-wurzel(root)/
 │     ├── todoController.js
 │
 │
-|── db/
+|── db(database)/
 │     ├── connectDB.js
 │
 │
 │
-├── models/
-│     ├── todoModel.js
+├── middlewares/
+│     ├── errorHandlerMiddleware.js
 │
 │
 ├── models/
@@ -108,10 +105,11 @@ npm init -y
 // normale Dependency
 npm install express
 npm install cors
+// npm install dotenv
 npm install mongoose
 
 // ODER IN BEAST-MODUS: alle auf einmal installieren 🧑🏿‍💻
-// npm install express cors dotenv mongoose
+// npm i express cors mongoose
 ```
 
 ```js
@@ -141,7 +139,7 @@ npm install --save-dev nodemon
   //...
   "scripts": {
     // diese Zeile sagt wenn wir "npm run start" eingeben, dann soll nodemon server.js ausgeführt werden
-    "start": "nodemon server.js"
+    "start": "nodemon --env-file=.env server.js"
   }
   //...
 }
@@ -253,7 +251,7 @@ npm run start
 
 ## Warum MVC?
 
-- Trennung der Verantwortlichkeiten:
+- Trennung der Verantwortlichkeiten (Separation of concerns):
   - Jeder Teil hat eine klare Aufgabe, was den Code sauber und wartbar macht.
 - Einfachere Zusammenarbeit:
   - Entwickler können an verschiedenen Teilen (Model, View, Controller) arbeiten, ohne sich gegenseitig zu stören.
@@ -265,3 +263,322 @@ npm run start
 - Model: Arbeitet mit den Daten.
 - View: Zeigt die Daten an.
 - Controller: Verbindet beide und steuert den Ablauf.
+
+### Erstell die benötigte Ordern
+
+- Ordnern laut unser Plan erstellen
+
+- **models**: Beinhaltet alle Modelle (Schema)
+- **controllers**: Beinhaltet alle Controller Funktionen
+- **routes**: Beinhaltet alle Router
+- **database( oder db)**: Beinhaltet alle Datenbank Verbindung
+- **middleware**: Beinhaltet alle Middleware Funktionen (optional)
+
+- **🧑🏿‍💻 BEAST MODUS!** ein Commando in Terminal geht's so:
+
+```js
+mkdir models controllers routes database middleware
+
+```
+
+---
+
+### `.env-Datei`, `node_modules` und `.gitignore`
+
+14. erstell ein `.gitignore Datei`
+15. füge die `.env` und `node_modules` order in `.gitignore` ein.
+
+```js
+// .gitignore Datei
+
+/node_modules
+.env
+
+```
+
+---
+
+## In Controller Ordner
+
+16. estell ein `todoControllers.js` datei
+17. füge ein Funktion ein
+18. exportier die Funktion
+
+```js
+function getAllTodosController(req, res) {
+  res.send("Hallo von GET");
+}
+
+export { getAllTodosController };
+```
+
+---
+
+## In Routes Ordner
+
+20. estell ein `todoRouter.js` datei
+21. importiere express
+22. importiere alle controller funktionen
+23. deklariere ein `todoRouter` Variabeln aus `express.Router()`
+24. erstell die verschiedene Endpunkte mit passenden controller Funktionen
+25. exportier die Router als `Default Export`
+
+```js
+import express from "express";
+
+import { getAllTodosController } from "../controllers/todoControllers.js";
+
+const todoRouter = express.Router();
+
+// get / read
+todoRouter.get("/", getAllTodosController);
+
+export default todoRouter;
+```
+
+---
+
+## In `server.js`
+
+26. importiere todoRouter.js
+
+```js
+import todoRouter from "./routes/todoRouter.js";
+```
+
+27. nutze `app.use()` und gib `dem Pfad`als erster Argument
+
+28. füge `den todoRouter` ein
+    - natürlich unter app.get("/")
+    - also vor der `app.listen()` Funktion
+
+```js
+app.use("/todos", todoRouter);
+```
+
+29. Test nochmal ob alles funktioniert
+
+---
+
+## MongoDB und database Ordner
+
+### in `database` Ordner
+
+30. erstell ein `connectDB.js`-Datei in database Ordner
+
+31. importiere mongoose
+
+32. füge eine `connectDB` Funktion ein
+
+33. exportiere der Funktion als Default
+
+```js
+import mongoose from "mongoose";
+
+// diese Funktion verwendet mongoose.connect um eine Verbindung zur MongoDB herzustellen
+const connectDB = (url) => {
+  return mongoose.connect(url);
+};
+
+export default connectDB;
+```
+
+### in `.env` datei
+
+34. füge ein PORT variable ein
+35. füge dein mongoDB connection URL ein
+
+```js
+PORT = 5050 // oder ein beliebiger Port
+
+
+MONGO_URL = mongodb+srv://DEINUSERNAME:PASSWORT@BLABLABLA.mongodb.net/DATENBANKNAME
+```
+
+- in deine MONGO_URL musst du dein Username, Passwort und Datenbankname einfügen
+- du kannst die gleicher Username und Passwort für alle deine Projekte verwenden ABER nür die DATENBANKNAME ändern
+- zum Beispiel für dein Projekt `todoApi` kannst du `todoApi` als Datenbankname verwenden
+- MongoDB erstellt automatisch die Datenbank wenn du deine erste Daten einfügst
+- Wenn du eine anderes Projekt hast, kopiere einfach die gleiche MONGO_URL und ändere nur die Datenbankname
+- zum Beispiel `eshopApi` kannst du `eshopApi` als Datenbankname verwenden
+
+### in server.js
+
+36. importiere connectDB
+37. (Wenn noch nicht vorhanden)füge den Port mit `process.env.PORT` in dein port Variabel ein
+38. erstell ein async startServer Funktion (ersetze die alte app.listen() Funktion)
+39. füge deine MONGO_URL ein
+40. rufe die startServer Funktion
+
+```js
+import connectDB from "./database/connectDB.js";
+//
+const port = process.env.PORT || 5060;
+//....
+
+// Ganz unten in der Datei
+// diese Funktion verbindet sich mit der MongoDB und startet den Server
+const startServer = async () => {
+  try {
+    await connectDB(process.env.MONGO_URL);
+    console.log("Verbindung mit MongoDB hat geklappt");
+    app.listen(port, () => {
+      console.log("Server läuft auf: ", port);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+startServer();
+```
+
+41. Testen!
+
+- server starten
+
+```bash
+
+npm run start
+```
+
+- wenn alles geklappt hat, sollte die Console folgendes ausgeben:
+
+```txt
+verbindung mit MONGODB hat geklaptt!
+Port läuft auf Port: 5050
+```
+
+---
+
+## Model Ordner
+
+- Wie wir gestern gelernt haben, Datenbank brauchen software um mit den Daten zu arbeiten
+- Mongoose ist eine ODM (Object Data Modeling) Bibliothek für MongoDB und Node.js, die eine Schema-basierte Lösung für die Datenmodellierung bietet.
+- Mongoose bietet eine einfache Möglichkeit,
+  - Schemas zu definieren
+  - Daten zu validieren
+- Ein `Schema` ist eine Struktur, die beschreibt, wie die Daten in der Datenbank aussehen sollen.
+  - Syntax:
+    - `new mongoose.Schema()`;
+    - akzeptiert ein Objekt, das die Struktur der Daten beschreibt.
+    - z.B. `{ name: { type: String, required: true } }`
+    - `name` ist der Name des Feldes
+    - `type` ist der Datentyp (z.B. String, Number, Date)
+    - `required` ist eine Validierungsregel, die angibt, ob das Feld erforderlich ist oder nicht.
+  - Für unser Projekt werden wir ein einfaches Schema für unsere TODO-Liste erstellen.
+  - Das Schema wird ein Feld namens `todo` haben, das vom Typ `String` ist und erforderlich ist.
+  - Das bedeutet, dass wir sicherstellen wollen, dass jede Aufgabe einen Namen hat.
+  - z.B `{ todo: { type: String, required: true } }`
+  - mit schema - `const TodoItemSchema = new mongoose.Schema({ todo: { type: String, required: true } });`
+- Ein `Model` ist eine Instanz des Schemas, die mit der Datenbank kommuniziert.
+  - syntax:
+    - `mongoose.model("ModelName", schema)`
+    - `ModelName` ist der Name des Modells(collection in Mongo Datenbank - immer mehrzahlig) (z.B. "todoLists", "users")
+    - `schema` ist das Schema, das wir zuvor definiert haben.
+
+## in `models` Ordner
+
+42. erstell ein `todoModel.js`-Datei
+1.  Importiere mongoose
+1.  estell ein Schema
+1.  deklariere ein Model
+1.  exportiere den Model
+
+```js
+import mongoose from "mongoose";
+
+const TodoItemSchema = new mongoose.Schema({
+  todo: { type: String, required: true },
+});
+
+const todoModel = mongoose.model("todoLists", TodoItemSchema);
+
+export default todoModel;
+```
+
+---
+
+## in `todoControllers`-Datei
+
+- die kontroller sind die Funktionen, die die Logik für die verschiedenen Endpunkte enthalten.
+- wir brauchen hier unser Model um mit der Datenbank zu kommunizieren.
+- wir werden die CRUD-Funktionen erstellen, die wir in der Tabelle oben erwähnt haben.
+
+46. `todoModel` importieren
+
+```js
+import todoModel from "../models/todoModel.js";
+```
+
+47. `CRUD`-Funktionen bei bedarf erstellen und exportieren
+
+```js
+function getAllTodosController(req, res) {
+  res.send("Hallo von GET");
+}
+
+function createTodoController(req, res) {
+  res.send("Hallo von POST");
+}
+
+function updateTodoController(req, res) {
+  res.send("Hallo von PUT");
+}
+
+function deleteTodoController(req, res) {
+  res.send("Hallo von DELETE");
+}
+
+function deleteAllTodosController(req, res) {
+  res.send("Hallo von DELETE ALL");
+}
+
+export {
+  getAllTodosController,
+  createTodoController,
+  updateTodoController,
+  deleteTodoController,
+  deleteAllTodosController,
+};
+```
+
+## in `todoRouter`-Datei
+
+48. restliche `Kontroller-Funktionen` importieren
+49. passende Router Endpunkte erstellen
+
+```js
+import express from "express";
+
+import {
+  getAllTodosController,
+  createTodoController,
+  updateTodoController,
+  deleteTodoController,
+  deleteAllTodosController,
+} from "../controllers/todoControllers.js";
+
+const todoRouter = express.Router();
+
+// get / read
+todoRouter.get("/", getAllTodosController);
+
+// create / post
+todoRouter.post("/", createTodoController);
+
+//update
+todoRouter.put("/:todoId", updateTodoController);
+
+// Delete one
+todoRouter.delete("/:todoId", deleteTodoController);
+
+// delete all (OPTIONAL und NICHT WÜNSCHENSWERT)
+todoRouter.delete("/", deleteAllTodosController);
+
+export default todoRouter;
+```
+
+50. ALLE ENDPUNKTE TESTEN!!!!!!
+
+---
