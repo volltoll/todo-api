@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import connectDB from "./db/connectDB.js";
+import connectDB from "./database/connectDB.js";
+import todoRouter from './routes/todoRouter.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -13,9 +14,11 @@ app.use(express.json());
 
 app.get("/", ( req, res ) => {
     res.send("Hello World!");
-   
-    
-})
+   });
+
+
+//  CRUD - Routen
+app.use("/todos", todoRouter);   
 
 
 
