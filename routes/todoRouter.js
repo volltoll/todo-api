@@ -8,7 +8,7 @@
 
 
 import express from "express";
-import { createTodoController, getAllTodosController } from "../controllers/todoControllers.js";
+import { createTodoController, getAllTodosController, deleteTodoController, updateTodoController } from "../controllers/todoControllers.js";
 
 
 //  3. Erstelle einen Router aus Express
@@ -19,6 +19,13 @@ const todoRouter = express.Router();
 todoRouter.post("/", createTodoController);
 //  GET - READ
 todoRouter.get("/", getAllTodosController);
+
+//  TODO: UPDATE
+todoRouter.put("/:id", updateTodoController);
+
+
+// DELETE - DELETE
+todoRouter.delete("/:id", deleteTodoController);
 
 
 //  5. exportiere den Router
